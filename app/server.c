@@ -38,7 +38,7 @@ dll_t* routing_table;
 dll_t* mac_list;
 
 /*
-* An array of File descriptors which the server process is maintaining in order 
+* An array of File descriptors which the server process is maintaining in order
 * to talk with connected clients. Master skt FD is also a member of this array.
 */
 
@@ -101,7 +101,7 @@ void remove_from_monitored_fd_set(int skt_fd) {
 }
 
 /*Remove the pid from client_pid_set array*/
-void remove_from_client_pid_set(int pid) {
+void remove_from_client_pid_set(pid_t pid) {
 	int i = 0;
 	for (; i < MAX_CLIENTS; i++) {
 		if (monitored_fd_set[i] != pid)
@@ -112,7 +112,7 @@ void remove_from_client_pid_set(int pid) {
 }
 
 /*
-* Clone all the fds in monitored_fd_set array into fd_set 
+* Clone all the fds in monitored_fd_set array into fd_set
 * Data structure.
 */
 void refresh_fd_set(fd_set* fd_set_ptr) {
@@ -214,12 +214,12 @@ int get_max_fd() {
 * Parses a string command, in the format
 * <Opcode, Dest, Mask, GW, OIF> or <Opcode, MAC>
 * with each field seperated by a space, to create
-* a sync message for clients, instructing them on 
+* a sync message for clients, instructing them on
 * how to update their copies of the routing table.
 * The silent parameter indicates whether the server
 * is actively inputting a command for MAC list via
 * stdin or a client is replicating a command sent by
-* the server. Returns 0 on success and -1 on any 
+* the server. Returns 0 on success and -1 on any
 * failure.
 */
 
@@ -241,13 +241,13 @@ int create_sync_message(char* operation, sync_msg_t* sync_msg, int silent) {
 		case 'D':
 			sync_msg->op_code = DELETE;
 			break;
-		
+
 		case 'S':
 			sync_msg->op_code = NONE;
 			display_routing_table(routing_table);
 			display_mac_list(mac_list);
 			return 0;
-		
+
 		case 'F':
 			sync_msg->op_code = NONE;
 
@@ -316,7 +316,7 @@ int create_sync_message(char* operation, sync_msg_t* sync_msg, int silent) {
 
 	if (sync_msg->op_code == CREATE || sync_msg->op_code == UPDATE) {
 		token = strtok(NULL, " ");
-		
+
 		if (isValidIP(token)) {
 			memcpy(sync_msg->msg_body.routing_table_entry.gw, token, strlen(token));
 		}
@@ -373,11 +373,11 @@ void signal_handler(int signal_num) {
 				O_CREAT | O_RDONLY,
 				0660);
 
-			shm_unlink(entry->mac);
-			close(shm_fd);
+		shm_unlink(entry->mac);
+		close(shm_fd);
 		ITERATE_DLL_END()
 
-		deinit_dll(routing_table);
+			deinit_dll(routing_table);
 		deinit_dll(mac_list);
 		close(connection_socket);
 		remove_from_monitored_fd_set(connection_socket);
@@ -393,22 +393,22 @@ void signal_handler(int signal_num) {
 */
 
 void update_new_client(int data_socket, LCODE l_code, char* op, sync_msg_t* sync_msg) {
-	
+
 	dll_node_t* head = l_code == L3 ? routing_table->head : mac_list->head;
 	dll_node_t* curr = head->next;
 
 	while (curr != head) {
 		routing_table_entry_t rt_entry = *((routing_table_entry_t*)curr->data);
-		
+
 		mac_list_entry_t ml_entry = *((mac_list_entry_t*)curr->data);
 
 		sync_msg->op_code = CREATE;
 
 		if (l_code == L3) {
-			sprintf(op, "C %s %u %s %s", 
-				rt_entry.dest, 
-				rt_entry.mask, 
-				rt_entry.gw, 
+			sprintf(op, "C %s %u %s %s",
+				rt_entry.dest,
+				rt_entry.mask,
+				rt_entry.gw,
 				rt_entry.oif);
 		}
 		else {
@@ -421,7 +421,7 @@ void update_new_client(int data_socket, LCODE l_code, char* op, sync_msg_t* sync
 		write(data_socket, sync_msg, sizeof(sync_msg_t));
 		write(data_socket, &synchronized, sizeof(int));
 		write(data_socket, &loop, sizeof(int));
-		
+
 		curr = curr->next;
 	}
 
@@ -479,7 +479,7 @@ int main() {
 	* Bind socket to socket name
 	*/
 
-	ret = bind(connection_socket, (const struct sockaddr*) &name,
+	ret = bind(connection_socket, (const struct sockaddr*)&name,
 		sizeof(struct sockaddr_un));
 
 	if (ret == -1) {
@@ -614,6 +614,6 @@ int main() {
 			}
 		}
 	}
-	
+
 	exit(0);
 }

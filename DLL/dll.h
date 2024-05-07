@@ -40,7 +40,7 @@ void deinit_dll(dll_t* dll);
 		struct_type* data_ptr = (struct_type* )c_ptr->data;	\
 		c_ptr = c_ptr->next;
 
-#define ITERATE_DLL_END() }
+#define ITERATE_DLL_END() }}
 
 
 
